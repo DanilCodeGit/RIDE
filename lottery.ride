@@ -1,0 +1,44 @@
+{-# STDLIB_VERSION 6 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+let kUserPayment = "Payment"
+let kWon = "Won"
+let separator = "_"
+
+func randomize(bytes: ByteVector, range: Int) = {
+let hash = sha256(bytes)
+let index = toInt(hash)
+index % range
+}
+
+func counting(bytes: ByteVector) = {
+let count = randomize(bytes, 10)
+if (count >= 3) then false
+else true
+}
+
+@Callable(i)
+func parseStruct() = {
+if (i.caller != this) then throw("Only owner")
+else {
+let winnerStruct = counting(i.transactionId)
+[
+BooleanEntry(kWon + separator + i.caller.toString() + randomize(i.transactionId,1000).toString(), winnerStruct),
+BooleanEntry(kWon, winnerStruct)
+]
+}
+}
+
+@Callable(i)
+func startGame() = {
+let amount = i.payments[0].amount.value()
+if (i.payments[0].assetId != unit) then throw("Pay in waves")
+else if (amount > 10) then throw("Too much amount")
+else {
+strict nullInitStore = invoke(this, "parseStruct", [], [])
+let won = getBoolean(this, kWon).valueOrErrorMessage("Storage read error")
+if won then [ScriptTransfer(i.caller,amount * 2, unit)]
+else []
+}
+}

@@ -1,0 +1,40 @@
+{-# STDLIB_VERSION 6 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+let kassetId = "AssetID"
+
+@Callable(i)
+func tokenIssuance() = {
+  # Определяем параметры выпускаевомого токена
+  let name = "BebraToken"
+  let description =  "Bebra by Kringe"
+  let quantity = 100000
+  let decimals =  3
+  # Выпуск токена
+   let issueBebra = Issue(name,description,quantity,decimals,true)
+  # Вычисляем ID токена
+  let assetId = issueBebra.calculateAssetId()
+   # Описываем ключ для работы с хранилищем
+  let knewToken = "Token"
+  # Описываем геттеры для работы с хранилищем
+  let getNewToken = this.getString(knewToken).valueOrErrorMessage("BebraToken is not defined")
+ 
+   [
+    issueBebra,
+    BinaryEntry(kassetId, assetId),
+    StringEntry(knewToken,issueBebra.name)
+   ]
+}
+
+@Callable(i)
+func senderToken()={
+  # Получаем ID NFT
+   let assetID = getBinaryValue(this,kassetId).valueOrErrorMessage("error")
+  #
+  [
+  # Функция оплаты лутбокса
+  ScriptTransfer(this, 2,unit),
+  ScriptTransfer(i.caller,20,assetID)
+  ]
+}

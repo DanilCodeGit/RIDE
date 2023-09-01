@@ -1,0 +1,15 @@
+{-# STDLIB_VERSION 6 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+#let iteration = this.getInteger("usersCounter").valueOrErrorMessage("Range store read error")
+@Callable(i)
+func foo(iteration:Int) = {
+    if iteration > 0 then{
+     strict res = reentrantInvoke(this,"foo",[iteration-1],[])
+     [IntegerEntry("value",iteration)]  
+   } else{
+     []
+   }
+}
+
